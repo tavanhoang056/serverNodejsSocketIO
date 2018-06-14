@@ -93,6 +93,10 @@ io.on("connection", function(socket) {
 		socket.broadcast.emit("DESTROYBRUSH", currentBrush);
 	});
 
+	socket.on("PING", function() {
+		socket.emit("PONG", currentUser);
+	});
+
 	socket.on("disconnect", function() {
 		socket.broadcast.emit("USER_DISCONNECTED", currentUser);
 		for(var i = 0; i < clients.length; i++){
