@@ -49,11 +49,26 @@ io.on("connection", function(socket) {
 			health:data.health
 		}
 		clients.push(currentUser);
-		socket.emit("PLAY", currentUser);
-
+		console.log("Alive : " + clients.length);
+		socket.emit("PLAY", {
+			name:data.name,
+			position:data.position,
+			turn:data.turn,
+			grabweapon:data.grabweapon,
+			health:data.health,
+			alive:clients.length.toString()
+		});
+		
 		//send data of current user to all user
 		// socket.emit("USER_CONNECTED", currentUser);
-		socket.broadcast.emit("USER_CONNECTED", currentUser);
+		socket.broadcast.emit("USER_CONNECTED", {
+			name:data.name,
+			position:data.position,
+			turn:data.turn,
+			grabweapon:data.grabweapon,
+			health:data.health,
+			alive:clients.length.toString()
+		});
 	});
 
 	socket.on("MOVE", function(data) {
@@ -93,9 +108,9 @@ io.on("connection", function(socket) {
 		socket.broadcast.emit("DESTROYBRUSH", currentBrush);
 	});
 
-	socket.on("PING", function() {
-		socket.emit("PONG", currentUser);
-	});
+	//socket.on("PING", function() {
+		//socket.emit("PONG", currentUser);
+	//});
 
 	socket.on("disconnect", function() {
 		socket.broadcast.emit("USER_DISCONNECTED", currentUser);
