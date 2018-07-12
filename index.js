@@ -89,7 +89,12 @@ io.on("connection", function(socket) {
 	});
 
 	socket.on("SHOOTING", function(data) {
-		socket.broadcast.emit("SHOOTING", {name : data.name});
+		socket.broadcast.emit("SHOOTING", {name : data.name, speed : data.speed, line :  data.line, color : data.color});
+	});
+
+	socket.on("BANDAGEHEALTH", function(data) {
+		currentUser.health = data.health;
+		socket.broadcast.emit("BANDAGEHEALTH", {name : data.name});
 	});
 
 	socket.on("TAKEDAMAGE", function(data) {
@@ -97,6 +102,14 @@ io.on("connection", function(socket) {
 		socket.broadcast.emit("TAKEDAMAGE", {name : data.name});
 	});
 
+	socket.on("BULLETPROOF", function(data) {
+		socket.broadcast.emit("BULLETPROOF", {name : data.name});
+	});
+
+	socket.on("HELMET", function(data) {
+		socket.broadcast.emit("HELMET", {name : data.name});
+	});
+	
 	socket.on("DESTROYBRUSH", function(data) {
 		currentBrush = {
 			name:data.name,
