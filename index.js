@@ -8,21 +8,34 @@ app.set('port', process.env.PORT || 3000);
 
 var clients = new Array();
 var brushs = new Array();
+var bulletproofs = new Array();
+var helmets = new Array();
 io.on("connection", function(socket) {
 
 	var currentUser;
 	var currentBrush;
+	var bulletproofPlayer;
+	var helmetPlayer;
 	socket.on("USER_CONNECT", function() {
 		console.log("User connected");
 		for(var i = 0; i < clients.length; i++){
-			//send all (data of otherplayer who is user is connected) to current user
-			socket.emit("USER_CONNECTED", {name:clients[i].name, position:clients[i].position, grabweapon:clients[i].grabweapon, health:clients[i].health});
+			//send all (data of otherplayer who is user is connected) to current user by sockt.emit
+			socket.emit("STATE_USER_CONNECTED", {name:clients[i].name, position:clients[i].position, grabweapon:clients[i].grabweapon, health:clients[i].health});
 			console.log("User name " + clients[i].name + " is connected");
 		}
 		for(var i = 0; i < brushs.length; i++){
 			//send all (data of otherplayer who is user is connected) to current user
 			socket.emit("STATE_BRUSH", {name:brushs[i].name, scale:brushs[i].scale, state:brushs[i].state});
 			console.log("Brush name " + brushs[i].name + " is " + brushs[i].scale);
+		}
+		for(var i = 0; i < bulletproofs.length; i++){
+			//send all (data of otherplayer who is user is connected) to current user
+			socket.emit("STATE_BULLETPROOF", {name:bulletproofs[i].name});
+		}
+		for(var i = 0; i < helmets.length; i++){
+			//send all (data of otherplayer who is user is connected) to current user
+			socket.emit("STATE_HELMET", {name:helmets[i].name});
+
 		}
 	});
 
@@ -61,7 +74,7 @@ io.on("connection", function(socket) {
 		
 		//send data of current user to all user
 		// socket.emit("USER_CONNECTED", currentUser);
-		socket.broadcast.emit("USER_CONNECTED", {
+		socket.broadcast.emit("NEWPLAYER", {
 			name:data.name,
 			position:data.position,
 			turn:data.turn,
@@ -98,15 +111,28 @@ io.on("connection", function(socket) {
 	});
 
 	socket.on("TAKEDAMAGE", function(data) {
-		currentUser.health = data.health;
-		socket.broadcast.emit("TAKEDAMAGE", {name : data.name});
+		for(var i = 0; i < clients.length; i++){
+			//send all (data of otherplayer who is user is connected) to current user by sockt.emit
+			if(clients[i].name == data.name){
+				clients[i].health = data.health;
+			}
+		}
+		socket.broadcast.emit("TAKEDAMAGE", {name : data.name, health :  data.health});
 	});
 
 	socket.on("BULLETPROOF", function(data) {
+		bulletproofPlayer = {
+			name:data.name
+		}
+		bulletproofs.push(bulletproofPlayer);
 		socket.broadcast.emit("BULLETPROOF", {name : data.name});
 	});
 
 	socket.on("HELMET", function(data) {
+		helmetPlayer = {
+			name:data.name
+		}
+		helmets.push(helmetPlayer);
 		socket.broadcast.emit("HELMET", {name : data.name});
 	});
 	
@@ -119,6 +145,38 @@ io.on("connection", function(socket) {
 		brushs.push(currentBrush);
 		console.log("scale " + data.scale);
 		socket.broadcast.emit("DESTROYBRUSH", currentBrush);
+	});
+
+	socket.on("PLAYAGAIN", function(data) {
+		for(var i = 0; i < bulletproofs.length; i++){
+			//send all (data of otherplayer who is user is connected) to current user
+			if(bulletproofs[i].name == data.name){
+				bulletproofs.splice(i,1);
+			}
+		}
+		for(var i = 0; i < helmets.length; i++){
+			//send all (data of otherplayer who is user is connected) to current user
+			if(helmets[i].name == data.name){
+				helmets.splice(i,1);
+			}
+		}
+		currentUser.health = "100";
+		socket.broadcast.emit("PLAYAGAIN", {name : data.name});
+	});
+
+	socket.on("EXITPLAY", function(data) {
+		for(var i = 0; i < bulletproofs.length; i++){
+			//send all (data of otherplayer who is user is connected) to current user
+			if(bulletproofs[i].name == data.name){
+				bulletproofs.splice(i,1);
+			}
+		}
+		for(var i = 0; i < helmets.length; i++){
+			//send all (data of otherplayer who is user is connected) to current user
+			if(helmets[i].name == data.name){
+				helmets.splice(i,1);
+			}
+		}
 	});
 
 	//socket.on("PING", function() {
