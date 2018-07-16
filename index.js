@@ -10,12 +10,17 @@ var clients = new Array();
 var brushs = new Array();
 var bulletproofs = new Array();
 var helmets = new Array();
+var woodboxs = new Array();
+var supporters = new Array();
+
 io.on("connection", function(socket) {
 
 	var currentUser;
 	var currentBrush;
 	var bulletproofPlayer;
 	var helmetPlayer;
+	var currentWoodBox;
+	var currentSupporter;
 	socket.on("USER_CONNECT", function() {
 		console.log("User connected");
 		for(var i = 0; i < clients.length; i++){
@@ -35,7 +40,15 @@ io.on("connection", function(socket) {
 		for(var i = 0; i < helmets.length; i++){
 			//send all (data of otherplayer who is user is connected) to current user
 			socket.emit("STATE_HELMET", {name:helmets[i].name});
-
+		}
+		for(var i = 0; i < woodboxs.length; i++){
+			//send all (data of otherplayer who is user is connected) to current user
+			socket.emit("STATE_WOODBOX", {name:woodboxs[i].name, scale:woodboxs[i].scale, state:woodboxs[i].state, generate:woodboxs[i].generate,namegenerate:woodboxs[i].namegenerate});
+			console.log("WoodBox name " + woodboxs[i].name + " is " + woodboxs[i].scale);
+		}
+		for(var i = 0; i < supporters.length; i++){
+			//send all (data of otherplayer who is user is connected) to current user
+			socket.emit("STATE_SUPPORTER", {name:supporters[i].name});
 		}
 	});
 
@@ -43,6 +56,12 @@ io.on("connection", function(socket) {
 		currentUser.grabweapon = data.grabweapon;
 		socket.broadcast.emit("WEAPON", currentUser);
 		console.log(currentUser.name + "grab weapon: " + currentUser.grabweapon);
+	});
+
+	socket.on("GRABSUPPORTER", function(data) {
+		currentSupporter = {name: data.name};
+		supporters.push(currentSupporter);
+		socket.broadcast.emit("GRABSUPPORTER", currentUser);
 	});
 
     socket.on("TALK", function (data) {
@@ -147,6 +166,19 @@ io.on("connection", function(socket) {
 		socket.broadcast.emit("DESTROYBRUSH", currentBrush);
 	});
 
+	socket.on("DESTROYWOODBOX", function(data) {
+		currentWoodBox = {
+			name:data.name,
+			scale:data.scale,
+			state:data.state,
+			generate:data.generate,
+			namegenerate:data.namegenerate
+		}
+		woodboxs.push(currentWoodBox);
+		console.log("scale " + data.scale);
+		socket.broadcast.emit("DESTROYWOODBOX", currentWoodBox);
+	});
+
 	socket.on("PLAYAGAIN", function(data) {
 		for(var i = 0; i < bulletproofs.length; i++){
 			//send all (data of otherplayer who is user is connected) to current user
@@ -192,11 +224,17 @@ io.on("connection", function(socket) {
                     messe : " has disconnect"
                 });
 				console.log("User "+clients[i].name+" disconnected");
+				
+				if(clients.length == 2){
+					socket.broadcast.emit("WIN", {alive : clients.length});
+				}
 				clients.splice(i,1);
 			}
 		}
 		if(clients.length == 0){
 			brushs.splice(0, brushs.length);
+			woodboxs.splice(0, woodboxs.length);
+			supporters.splice(0, supporters.length);
 		}
 	});
 });
