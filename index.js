@@ -61,7 +61,7 @@ io.on("connection", function(socket) {
 	socket.on("GRABSUPPORTER", function(data) {
 		currentSupporter = {name: data.name};
 		supporters.push(currentSupporter);
-		socket.broadcast.emit("GRABSUPPORTER", currentUser);
+		socket.broadcast.emit("GRABSUPPORTER", {name:data.name});
 	});
 
     socket.on("TALK", function (data) {
